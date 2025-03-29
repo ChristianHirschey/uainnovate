@@ -4,7 +4,7 @@ from app.models.typings import RequestType, RequestStatus, RequestPriority
 from app.supabase.supabaseClient import supabase
 from typing import Optional, List
 from uuid import UUID
-from app.utils.request_ops import create_request_record
+from app.utils.request_ops import create_request_record, get_all_requests
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -55,14 +55,8 @@ async def get_request(request_id: UUID):
 
 @router.put("/get-all")
 async def get_all_requests():
-    try:
-        response = (supabase.table("requests").select("*").execute())
-        print(response)
-        
-        if response:
-            return response
-        else:
-            raise HTTPException(status_code=404, detail="No requests found")
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    result = get_all_requests()
+    if result["success"]:
+        return result
+    else:
+        raise HTTPException(status_code=400, detail=result["error"])
