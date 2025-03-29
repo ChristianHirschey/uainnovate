@@ -8,7 +8,7 @@ from app.utils.supply_ops import create_supply_record
 from app.routes import logs, notifications, supplies, requests
 app = FastAPI()
 app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
-app.include_router(notifications.router, prefix="/api", tags=["notifications"])
+app.include_router(notifications.router, prefix="/api/notifications", tags=["notifications"])
 app.include_router(supplies.router, prefix="/api/supplies", tags=["supplies"])
 app.include_router(requests.router, prefix="/api/requests", tags=["requests"])
 # CORS Configuration
