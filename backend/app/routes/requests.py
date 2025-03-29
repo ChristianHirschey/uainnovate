@@ -4,39 +4,41 @@ from app.models.typings import RequestType, RequestStatus, RequestPriority
 from app.supabase.supabaseClient import supabase
 from typing import Optional, List
 from uuid import UUID
+from app.utils.request_ops import create_request_record
 from pydantic import BaseModel
+from datetime import datetime
 
-# Create a request model for the input data
+# New model for request creation
 class RequestCreate(BaseModel):
     type: RequestType
     description: str
     priority: RequestPriority = RequestPriority.medium
+    status: RequestStatus = RequestStatus.open
     supply_id: Optional[UUID] = None
     user_id: Optional[UUID] = None
 
 router = APIRouter()
 
-@router.post("/requests", response_model=Request)
-async def create_request(request: RequestCreate):  # Changed to use request body
-    try:
-        data = {
-            "type": request.type,
-            "description": request.description,
-            "priority": request.priority,
-            "status": RequestStatus.open,
-            "supply_id": str(request.supply_id) if request.supply_id else None,
-            "user_id": str(request.user_id) if request.user_id else None
-        }
-        
-        response = supabase.table("requests").insert(data).execute()
-        
-        if response.data:
-            return response.data[0]
-        else:
-            raise HTTPException(status_code=400, detail="Failed to create request")
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@router.post("/requests")
+def create_request(request_data: RequestCreate):
+    # Convert RequestCreate to Request
+    request = Request(
+        id=UUID(int=0),  # Temporary ID, will be replaced by database
+        type=request_data.type,
+        description=request_data.description,
+        priority=request_data.priority,
+        status=request_data.status,
+        supply_id=request_data.supply_id,
+        user_id=request_data.user_id,
+        created_at=datetime.now(),
+        resolved_at=None
+    )
+    
+    result = create_request_record(request)
+    if result["success"]:
+        return result
+    else:
+        raise HTTPException(status_code=400, detail=result["error"])
     
 @router.get("/requests/{request_id}", response_model=Request)
 async def get_request(request_id: UUID):
@@ -51,13 +53,14 @@ async def get_request(request_id: UUID):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/requests/get-all", response_model=List[Request]   )
+@router.put("/requests/get-all"   )
 async def get_all_requests():
     try:
-        response = supabase.table("requests").select("*").execute()
+        response = (supabase.table("requests").select("*").execute())
+        print(response)
         
-        if response.data:
-            return response.data
+        if response:
+            return response
         else:
             raise HTTPException(status_code=404, detail="No requests found")
             
