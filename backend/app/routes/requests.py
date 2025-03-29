@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.models.request import Request
 from app.models.typings import RequestType, RequestStatus, RequestPriority
 from app.main import supabase
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
 router = APIRouter()
@@ -31,6 +31,32 @@ async def create_request(
             return response.data[0]
         else:
             raise HTTPException(status_code=400, detail="Failed to create request")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/requests/{request_id}", response_model=Request)
+async def get_request(request_id: UUID):
+    try:
+        response = supabase.table("requests").select("*").eq("id", request_id).execute()
+        
+        if response.data:
+            return response.data[0]
+        else:
+            raise HTTPException(status_code=404, detail="Request not found")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/requests/get-all", response_model=List[Request]   )
+async def get_all_requests():
+    try:
+        response = supabase.table("requests").select("*").execute()
+        
+        if response.data:
+            return response.data
+        else:
+            raise HTTPException(status_code=404, detail="No requests found")
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
