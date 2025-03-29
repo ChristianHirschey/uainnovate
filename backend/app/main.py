@@ -13,11 +13,10 @@ from app.utils.notification_ops import create_notification_record, read_notifica
 from uuid import UUID
 
 app = FastAPI()
-# app.include_router(logs.router, prefix="/api", tags=["logs"])
-# app.include_router(notifications.router, prefix="/api", tags=["notifications"])
-# app.include_router(supplies.router, prefix="/api", tags=["supplies"])
-app.include_router(request_router, prefix="/api", tags=["requests"])
-
+app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
+app.include_router(notifications.router, prefix="/api", tags=["notifications"])
+app.include_router(supplies.router, prefix="/api/supplies", tags=["supplies"])
+app.include_router(requests.router, prefix="/api/requests", tags=["requests"])
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
