@@ -11,6 +11,7 @@ from app.routes.requests import router as request_router
 from app.models.notification import NotificationCreate, NotificationRead, NotificationUpdate, NotificationDelete
 from app.utils.notification_ops import create_notification_record, read_notification_record, read_all_notification_records, update_notification_record, delete_notification_record
 from uuid import UUID
+from app.routes import logs, notifications, supplies
 
 app = FastAPI()
 app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
