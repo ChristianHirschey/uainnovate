@@ -19,7 +19,7 @@ class RequestCreate(BaseModel):
 
 router = APIRouter()
 
-@router.post("/requests")
+@router.post("/")
 def create_request(request_data: RequestCreate):
     # Convert RequestCreate to Request
     request = Request(
@@ -40,7 +40,7 @@ def create_request(request_data: RequestCreate):
     else:
         raise HTTPException(status_code=400, detail=result["error"])
     
-@router.get("/requests/{request_id}", response_model=Request)
+@router.get("/{request_id}", response_model=Request)
 async def get_request(request_id: UUID):
     try:
         response = supabase.table("requests").select("*").eq("id", request_id).execute()
@@ -53,7 +53,7 @@ async def get_request(request_id: UUID):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/requests/get-all"   )
+@router.put("/get-all")
 async def get_all_requests():
     try:
         response = (supabase.table("requests").select("*").execute())
