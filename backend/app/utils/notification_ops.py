@@ -88,3 +88,5 @@ def delete_notification_record(notification_id: UUID) -> dict:
     except Exception as e:
         print("Exception:", e)
         return {"success": False, "error": str(e)}
+    
+#def dump_notifications(amount: int):
