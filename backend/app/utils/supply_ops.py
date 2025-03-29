@@ -2,7 +2,6 @@
 
 from app.supabase.supabaseClient import supabase
 from app.models.supply import Supply
-from supabase.lib.client_options import ClientOptions  # optional, depending on SDK version
 
 def create_supply_record(supply: Supply) -> dict:
     try:
@@ -17,9 +16,6 @@ def create_supply_record(supply: Supply) -> dict:
             "purchase_price": supply.purchase_price
         }).execute()
 
-        print("✅ Supabase response:", response)
-
-        # ✅ This is the correct way to access response fields
         if hasattr(response, "data") and response.data:
             return {"success": True, "message": "Supply added", "id": response.data[0].get("id")}
 
@@ -29,5 +25,5 @@ def create_supply_record(supply: Supply) -> dict:
         }
 
     except Exception as e:
-        print("❌ Exception:", e)
+        print("Exception:", e)
         return {"success": False, "error": str(e)}
