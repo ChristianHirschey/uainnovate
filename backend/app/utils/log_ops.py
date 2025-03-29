@@ -1,6 +1,4 @@
 from app.supabase.supabaseClient import supabase
-from app.models.log import Log
-
 def read_logs() -> dict:
     try:
         response = supabase.from_("supply_logs").select("*").execute()
