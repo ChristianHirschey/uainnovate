@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from app.supabase.supabaseClient import supabase
-from app.models.supply import Supply
-from app.utils.supply_ops import create_supply_record
+from app.routes.supplies import router as supplies_router
+from app.routes.requests import router as request_router
 from app.routes import requests
 from app.supabase.supabaseClient import supabase
 from app.models.notification import NotificationCreate, NotificationUpdate
@@ -26,13 +26,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(supplies_router, prefix="/api/supplies", tags=["supplies"])
+app.include_router(request_router, prefix="/api/requests", tags=["requests"])
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
-
-@app.post("/supplies")
-def add_supply(supply: Supply):
-    result = create_supply_record(supply)
-    if result["success"]:
-        return {"message": result["message"]}
-    return {"error": result["error"]}

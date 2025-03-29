@@ -1,5 +1,6 @@
 from app.supabase.supabaseClient import supabase
 from app.models.request import Request
+from uuid import UUID
 
 def create_request_record(request: Request) -> dict:
     try:
@@ -29,13 +30,29 @@ def create_request_record(request: Request) -> dict:
 def get_all_requests() -> dict:
     try:
         response = supabase.from_("requests").select("*").execute()
-
+        
         if hasattr(response, "data") and response.data:
-            return {"success": True, "requests": response.data}
+            return {"success": True, "data": response.data}
         
         return {
             "success": False,
-            "error": "No requests found.",
+            "error": "No requests found."
+        }
+    
+    except Exception as e:
+        print("Exception:", e)
+        return {"success": False, "error": str(e)}
+    
+def get_request_by_id(request_id: UUID) -> dict:
+    try:
+        response = supabase.from_("requests").select("*").eq("id", request_id).execute()
+        
+        if hasattr(response, "data") and response.data:
+            return {"success": True, "request": response.data[0]}
+
+        return {
+            "success": False,
+            "error": "Request not found.",
         }
     
     except Exception as e:
