@@ -1,28 +1,31 @@
 from fastapi import APIRouter, HTTPException
 from app.models.request import Request
 from app.models.typings import RequestType, RequestStatus, RequestPriority
-from app.main import supabase
+from app.supabase.supabaseClient import supabase
 from typing import Optional, List
 from uuid import UUID
+from pydantic import BaseModel
+
+# Create a request model for the input data
+class RequestCreate(BaseModel):
+    type: RequestType
+    description: str
+    priority: RequestPriority = RequestPriority.medium
+    supply_id: Optional[UUID] = None
+    user_id: Optional[UUID] = None
 
 router = APIRouter()
 
 @router.post("/requests", response_model=Request)
-async def create_request(
-    type: RequestType,
-    description: str,
-    priority: RequestPriority = RequestPriority.medium,
-    supply_id: Optional[UUID] = None,
-    user_id: Optional[UUID] = None
-):
+async def create_request(request: RequestCreate):  # Changed to use request body
     try:
         data = {
-            "type": type,
-            "description": description,
-            "priority": priority,
+            "type": request.type,
+            "description": request.description,
+            "priority": request.priority,
             "status": RequestStatus.open,
-            "supply_id": str(supply_id) if supply_id else None,
-            "user_id": str(user_id) if user_id else None
+            "supply_id": str(request.supply_id) if request.supply_id else None,
+            "user_id": str(request.user_id) if request.user_id else None
         }
         
         response = supabase.table("requests").insert(data).execute()

@@ -14,6 +14,7 @@ app = FastAPI()
 # app.include_router(notifications.router, prefix="/api", tags=["notifications"])
 # app.include_router(supplies.router, prefix="/api", tags=["supplies"])
 app.include_router(request_router, prefix="/api", tags=["requests"])
+
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
