@@ -1,19 +1,15 @@
 from app.supabase.supabaseClient import supabase
 from app.models.log import Log
 
-def read_logs(log: Log) -> dict:
+def read_logs() -> dict:
     try:
-        response = supabase.from_("supply_logs").select({
-            "message": log.message,
-            "supply_id": log.supply_id,
-            "user_id": log.user_id,
-            "change": log.change,
-            "reason": log.reason,
-            "timestamp": log.timestamp
-        }).execute()
-
+        response = supabase.from_("supply_logs").select("*").execute()
         if hasattr(response, "data") and response.data:
-            return {"success": True, "message": 'Logs retrieved successfully', "data": response.data}
+            filtered_data = [
+                {key: value for key, value in log.items() if key != "id"}
+                for log in response.data
+            ]
+            return {"success": True, "message": "Logs retrieved successfully", "data": filtered_data}
         
         return {
             "success": False,
