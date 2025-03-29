@@ -25,3 +25,19 @@ def create_request_record(request: Request) -> dict:
     except Exception as e:
         print("Exception:", e)
         return {"success": False, "error": str(e)}
+    
+def get_all_requests() -> dict:
+    try:
+        response = supabase.from_("requests").select("*").execute()
+
+        if hasattr(response, "data") and response.data:
+            return {"success": True, "requests": response.data}
+        
+        return {
+            "success": False,
+            "error": "No requests found.",
+        }
+    
+    except Exception as e:
+        print("Exception:", e)
+        return {"success": False, "error": str(e)}

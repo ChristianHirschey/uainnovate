@@ -14,9 +14,9 @@ from uuid import UUID
 from app.routes import logs, notifications, supplies
 
 app = FastAPI()
-app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
-app.include_router(notifications.router, prefix="/api", tags=["notifications"])
-app.include_router(supplies.router, prefix="/api/supplies", tags=["supplies"])
+# app.include_router(logs.router, prefix="/api/logs", tags=["logs"])
+# app.include_router(notifications.router, prefix="/api", tags=["notifications"])
+# app.include_router(supplies.router, prefix="/api/supplies", tags=["supplies"])
 app.include_router(requests.router, prefix="/api/requests", tags=["requests"])
 # CORS Configuration
 app.add_middleware(
