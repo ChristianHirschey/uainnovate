@@ -4,7 +4,7 @@ from app.models.typings import RequestType, RequestStatus, RequestPriority
 from app.supabase.supabaseClient import supabase
 from typing import Optional, List
 from uuid import UUID
-from app.utils.request_ops import create_request_record, get_all_requests
+from app.utils.request_ops import create_request_record, get_all_requests, get_request_by_id
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -40,23 +40,27 @@ def create_request(request_data: RequestCreate):
     else:
         raise HTTPException(status_code=400, detail=result["error"])
     
-@router.get("/{request_id}", response_model=Request)
-async def get_request(request_id: UUID):
-    try:
-        response = supabase.table("requests").select("*").eq("id", request_id).execute()
-        
-        if response.data:
-            return response.data[0]
-        else:
-            raise HTTPException(status_code=404, detail="Request not found")
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.put("/get-all")
-async def get_all_requests():
+@router.get("/get-all")
+def get_requests():
     result = get_all_requests()
     if result["success"]:
         return result
+    else:
+        raise HTTPException(status_code=400, detail=result["error"])
+
+@router.get("/all", response_model=List[Request])
+def list_all_requests():
+    result = get_all_requests()
+    print(result)
+    if result["success"]:
+        return result["data"]
+    else:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+@router.get("/{request_id}", response_model=Request)
+async def get_request(request_id: UUID):
+    result = get_request_by_id(request_id)
+    if result["success"]:
+        return result["request"]
     else:
         raise HTTPException(status_code=400, detail=result["error"])
