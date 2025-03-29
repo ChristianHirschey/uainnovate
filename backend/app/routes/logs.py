@@ -1,12 +1,14 @@
 from fastapi import APIRouter, HTTPException
-from app.utils.log_ops import read_logs
+from app.utils.log_ops import get_all_logs
 
 router = APIRouter()
 
 @router.get("/")
+def read_logs():
+@router.get("/")
 def get_logs():
     try:
-        response = read_logs()
+        response = get_all_logs()
         if response["success"]:
             return {'data': response["data"], 'message': response["message"]}
         else:
