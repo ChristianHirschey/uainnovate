@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
+import { DashboardSidebar } from '@/components/dashboard-sidebar';
 
 interface Request {
   id: string;
@@ -78,6 +79,8 @@ const Reports: React.FC = () => {
     'high': '#2196F3',
     'very_high': '#1976D2'
   };
+
+  const [open, setOpen] = useState(false);
 
   // Fetch data from API with error handling
   useEffect(() => {
@@ -230,138 +233,141 @@ const Reports: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Reports &amp; Analytics</h1>
-      
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <p className="text-lg">Loading report data...</p>
-        </div>
-      ) : error ? (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded flex items-center mb-6">
-          <AlertCircle className="h-5 w-5 mr-2" />
-          <p>{error}</p>
-        </div>
-      ) : null}
-      
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{feedbackData.length}</div>
-          </CardContent>
-        </Card>
+    <div className="flex w-full">
+      <DashboardSidebar open={open} setOpen={setOpen} />
+      <div className="flex-1 max-w-6xl mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-6">Reports &amp; Analytics</h1>
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Resolution Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{chartData?.resolutionRate?.toFixed(1)}%</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{chartData?.belowThresholdItems?.length || 0}</div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${(chartData?.totalInventoryValue || 0).toFixed(2)}</div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Only render charts if we have data */}
-      {chartData && (
-        <>
-          {/* Feedback Charts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {/* Feedback Status Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Request Status</CardTitle>
-                <CardDescription>Distribution of request statuses</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartData.feedbackStatusChart}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {chartData.feedbackStatusChart.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={statusColors[entry.name.toLowerCase().replace(' ', '_') as keyof typeof statusColors]} 
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [value, 'Requests']} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Feedback Type Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Request Types</CardTitle>
-                <CardDescription>Distribution of request categories</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartData.feedbackTypeChart}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {chartData.feedbackTypeChart.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={typeColors[entry.name.toLowerCase() as keyof typeof typeColors]} 
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [value, 'Requests']} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <p className="text-lg">Loading report data...</p>
           </div>
+        ) : error ? (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded flex items-center mb-6">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <p>{error}</p>
+          </div>
+        ) : null}
+        
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{feedbackData.length}</div>
+            </CardContent>
+          </Card>
           
-          {/* More charts and tables as needed */}
-        </>
-      )}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Resolution Rate</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{chartData?.resolutionRate?.toFixed(1)}%</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{chartData?.belowThresholdItems?.length || 0}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${(chartData?.totalInventoryValue || 0).toFixed(2)}</div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Only render charts if we have data */}
+        {chartData && (
+          <>
+            {/* Feedback Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Feedback Status Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Request Status</CardTitle>
+                  <CardDescription>Distribution of request statuses</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={chartData.feedbackStatusChart}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {chartData.feedbackStatusChart.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={statusColors[entry.name.toLowerCase().replace(' ', '_') as keyof typeof statusColors]} 
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => [value, 'Requests']} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Feedback Type Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Request Types</CardTitle>
+                  <CardDescription>Distribution of request categories</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={chartData.feedbackTypeChart}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {chartData.feedbackTypeChart.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={typeColors[entry.name.toLowerCase() as keyof typeof typeColors]} 
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => [value, 'Requests']} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* More charts and tables as needed */}
+          </>
+        )}
+      </div>
     </div>
   );
 };
