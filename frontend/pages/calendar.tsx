@@ -37,19 +37,19 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
+import { createClient } from "@/lib/supabase/client";
 
 
 export default function CalendarPage() {
+  const supabase = createClient();
   const [date, setDate] = useState<Date>(startOfToday());
   const [view, setView] = useState<"day" | "week" | "month">("week");
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  const [user, setUser] = useState<any>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   const fetchEvents = async () => {
     setIsLoading(true);
@@ -80,6 +80,40 @@ export default function CalendarPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    async function fetchUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+      }
+      setLoadingUser(false);
+    }
+    fetchUser();
+  }, [supabase]);
+
+  if (loadingUser) {
+    return <div>Loading user data...</div>;
+  }
+
+  if (!user) {
+    return <div>No user found. Please sign in.</div>;
+  }
+
+  const userRole = user!.role?.toString().trim().toLowerCase() || ''
+  if (userRole !== 'admin') {
+    return (
+      <div className="unauthorized">
+        <p>You are not authorized to view this page.</p>
+      </div>
+    )
+  }
 
   const addEvent = async (event: Event) => {
     try {

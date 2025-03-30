@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
 import { DashboardSidebar } from '@/components/dashboard-sidebar';
+import { createClient } from '@/lib/supabase/client';
 
 interface Request {
   id: string;
@@ -55,38 +56,30 @@ interface ChartData {
 }
 
 const Reports: React.FC = () => {
+  // Create Supabase client and fetch the user
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
   const [feedbackData, setFeedbackData] = useState<Request[]>([]);
   const [supplyData, setSupplyData] = useState<Supply[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [open, setOpen] = useState<boolean>(false);
 
-  // Colors
-  const statusColors = {
-    'open': '#FF5733',
-    'in_progress': '#FFC300',
-    'resolved': '#36A2EB',
-    'closed': '#4CAF50'
-  };
+  useEffect(() => {
+    async function fetchUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+      }
+      setLoadingUser(false);
+    }
+    fetchUser();
+  }, [supabase]);
 
-  const typeColors = {
-    'supply': '#8884d8',
-    'maintenance': '#82ca9d',
-    'suggestion': '#ffc658',
-    'other': '#FF8042'
-  };
-
-  const priorityColors = {
-    'very_low': '#BBDEFB',
-    'low': '#90CAF9',
-    'medium': '#64B5F6',
-    'high': '#2196F3',
-    'very_high': '#1976D2'
-  };
-
-  const [open, setOpen] = useState(false);
-
-  // Fetch data from API with error handling
+  // Fetch reports data
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -151,7 +144,7 @@ const Reports: React.FC = () => {
     }
   }, [feedbackData, supplyData]);
 
-  // Calculate metrics and prepare chart data
+  // Prepare chart data
   const prepareChartData = () => {
     // Feedback metrics - handle empty feedback data
     const feedbackTypeCount = {
@@ -234,6 +227,48 @@ const Reports: React.FC = () => {
       belowThresholdItems,
       totalInventoryValue
     };
+  };
+
+  if (loadingUser) {
+    return <div>Loading user data...</div>;
+  }
+
+  if (!user) {
+    return <div>No user found. Please sign in.</div>;
+  }
+
+  // Check admin rights. Adjust the property key if needed.
+  // For example, if the admin role is stored in user.app_metadata.role:
+  const userRole = user.role?.toString().trim().toLowerCase() || '';
+  if (userRole !== 'admin') {
+    return (
+      <div className="unauthorized">
+        <p>You are not authorized to view this page.</p>
+      </div>
+    );
+  }
+
+  // Colors
+  const statusColors = {
+    'open': '#FF5733',
+    'in_progress': '#FFC300',
+    'resolved': '#36A2EB',
+    'closed': '#4CAF50'
+  };
+
+  const typeColors = {
+    'supply': '#8884d8',
+    'maintenance': '#82ca9d',
+    'suggestion': '#ffc658',
+    'other': '#FF8042'
+  };
+
+  const priorityColors = {
+    'very_low': '#BBDEFB',
+    'low': '#90CAF9',
+    'medium': '#64B5F6',
+    'high': '#2196F3',
+    'very_high': '#1976D2'
   };
 
   return (
