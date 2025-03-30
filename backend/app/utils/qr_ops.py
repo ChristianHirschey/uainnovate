@@ -39,12 +39,16 @@ async def process_image(file: UploadFile = File(...)):
         # Use gemini-1.5-pro-vision for vision capabilities
         model = "gemini-2.0-flash"
         print(f"Using model: {model}")
+
+        all_supplies = get_all_supplies()
+        supply_names = [supply["name"] for supply in all_supplies]
         
         # Create the prompt text
-        prompt_text = """
+        prompt_text = f"""
         Analyze this image and identify the focus item in the image (typically food, drink, or an office supply). 
         Be specific and detailed about what you see in the image.
         Return the name of the item, the quantity (only numeric value), and the priority level (very_low/low/medium/high/very_high).
+        The item name should be one of the following: {supply_names}.
         """
         
         # Create a base64 encoded string of the image
