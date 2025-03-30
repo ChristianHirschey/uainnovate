@@ -17,8 +17,8 @@ class RequestCreate(BaseModel):
     supply_id: Optional[UUID] = None
     user_id: Optional[UUID] = None
 
-router = APIRouter()
 
+router = APIRouter()
 @router.post("/")
 def create_request(request_data: RequestCreate):
     # Convert RequestCreate to Request

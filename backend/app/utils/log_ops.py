@@ -1,5 +1,4 @@
 from app.supabase.supabaseClient import supabase
-from app.models.log import Log
 
 def get_all_logs() -> dict:
     try:
