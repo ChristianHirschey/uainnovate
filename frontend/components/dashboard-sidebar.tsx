@@ -43,7 +43,7 @@ export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
       <ScrollArea className="flex-1 px-2 py-4">
         <nav className="flex flex-col gap-1">
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/dashboard" className="flex items-center gap-2">
               <Home className="h-4 w-4" />
               Dashboard
             </Link>
