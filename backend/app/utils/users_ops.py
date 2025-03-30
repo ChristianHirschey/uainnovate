@@ -7,6 +7,7 @@ from google import genai
 from google.genai import types
 from app.models.user import PromptCreate
 import httpx
+from app.supabase.supabaseClient import supabase
 
 def generate(message: str) -> dict:
     client = genai.Client(
@@ -34,10 +35,13 @@ def generate(message: str) -> dict:
                 "priority_level": genai.types.Schema(
                     type = genai.types.Type.STRING,
                 ),
+                "item_type": genai.types.Schema(
+                    type = genai.types.Type.STRING,
+                ),
             },
         ),
         system_instruction=[
-            types.Part.from_text(text="""Your goal is to take a request from a user intended for an office manager and determine the category ('supply', 'maintenance', 'suggestion', 'other') and priority level ('very_low', 'low', 'medium', 'high', 'very_high') in the output format specified."""),
+            types.Part.from_text(text="""Your goal is to take a request from a user intended for an office manager and determine the category ('supply', 'maintenance', 'suggestion', 'other') and priority level ('very_low', 'low', 'medium', 'high', 'very_high'), and the item_type for the item requested (item_type should be as specific as possible including branding and type of supply) if the category is supply, in the output format specified."""),
         ],
     )
 
@@ -59,26 +63,40 @@ def generate(message: str) -> dict:
         generated_json = {}
 
     # Return a dictionary with a "data" key, as expected by create_prompt.
+    print("Generated JSON:", generated_json)
     return {"data": generated_json}
 
 async def create_prompt(prompt: PromptCreate) -> dict:
     try:
-        response = generate(prompt.message)
-        #data.category
-        #data.priority_level
-        if response.get("data"):
-            with httpx.AsyncClient() as client:
+        generated = generate(prompt.message)
+        data = generated.get("data", {})
+        category = data.get("category")
+        priority_level = data.get("priority_level")
+        item_type = data.get("item_type")
+        item_id = supabase.from_("supplies").select("id").ilike("name", item_type).execute()
+
+        print("Item ID:", item_id)
+        print("Item type:", item_type)
+
+        if category and priority_level:
+            async with httpx.AsyncClient() as client:
                 response = await client.post(
-                "localhost:8000/api/requests/",
-                data={"type": response.category, "description": prompt.message, "priority": response.priority_level, "user_id": prompt.user_id}
-    )
+                    "http://localhost:8000/api/requests/",
+                    json={
+                        "type": category,
+                        "description": prompt.message,
+                        "priority": priority_level,
+                        "user_id": str(prompt.user_id),
+                        "supply_id": item_id.data[0].get("id") if item_id.data else None,
+                    }
+                )
 
             return {"success": True, "message": "Prompt added"}
 
         return {
             "success": False,
             "error": "Insert failed. No data returned.",
-            "raw_output": response,
+            "raw_output": generated,
         }
 
     except Exception as e:

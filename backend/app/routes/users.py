@@ -6,9 +6,9 @@ from app.models.user import PromptCreate
 router = APIRouter()
 
 @router.post("/")
-def create_request(message: PromptCreate):
+async def create_request(message: PromptCreate):
     
-    result = create_prompt(message)
+    result = await create_prompt(message)
     if result["success"]:
         return result
     else:
