@@ -2,14 +2,6 @@
 import "../app/globals.css";
 import React, { useState } from 'react';
 
-// Type for the response from Gemini
-interface GeminiResponse {
-  items: Array<{
-    name: string;
-    [key: string]: any;
-  }>;
-}
-
 const ImageRequestForm: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,27 +41,13 @@ const ImageRequestForm: React.FC = () => {
         formData.append('file', image); // 'file' must match the parameter name in your FastAPI endpoint
 
       // Process the image with Gemini
-      const geminiResult = await fetch('http://localhost:8000/api/qr', {
+      const geminiResult = await fetch('https://3880-130-160-194-110.ngrok-free.app/api/qr', {
         method: 'POST',
         body: formData,
       });
 
       console.log(geminiResult);
       
-    //   // Send structured data to your API
-    //   const response = await fetch('http://localhost:8000/api/requests', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(geminiResult),
-    //   });
-
-    //   if (!response.ok) {
-    //     const errorText = await response.text();
-    //     throw new Error(`Failed to submit request: ${errorText}`);
-    //   }
-
       setSuccess('Request submitted successfully!');
       // Clear the form
       setImage(null);
