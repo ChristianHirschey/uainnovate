@@ -19,6 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 interface DashboardSidebarProps {
   open: boolean
   setOpen: (open: boolean) => void
+  
 }
 
 export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
@@ -42,49 +43,49 @@ export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
       <ScrollArea className="flex-1 px-2 py-4">
         <nav className="flex flex-col gap-1">
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="#" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <Home className="h-4 w-4" />
               Dashboard
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="#" className="flex items-center gap-2">
+            <Link href="/orders" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
               Orders
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="#" className="flex items-center gap-2">
+            <Link href="/supplies" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               Supplies
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="#" className="flex items-center gap-2">
+            <Link href="/staff" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Staff
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="#" className="flex items-center gap-2">
+            <Link href="/calendar" className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4" />
               Calendar
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="#" className="flex items-center gap-2">
+            <Link href="/documents" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               Documents
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="#" className="flex items-center gap-2">
+            <Link href="/reports" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Reports
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="#" className="flex items-center gap-2">
+            <Link href="/settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
             </Link>

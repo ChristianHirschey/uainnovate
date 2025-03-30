@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
@@ -7,58 +8,52 @@ import { cn } from "@/lib/utils"
 
 interface Notification {
   id: string
-  title: string
-  description: string
-  time: string
-  read: boolean
-  type: "info" | "warning" | "success" | "error"
+  message: string
+  supply_id: string
+  request_id: string
+  seen: boolean
+  created_at: string
 }
 
 export function Notifications() {
-  const notifications: Notification[] = [
-    {
-      id: "1",
-      title: "New order received",
-      description: "Office supplies order #3245 needs approval",
-      time: "10 minutes ago",
-      read: false,
-      type: "info",
-    },
-    {
-      id: "2",
-      title: "Low supply alert",
-      description: "Printer paper is running low",
-      time: "1 hour ago",
-      read: false,
-      type: "warning",
-    },
-    {
-      id: "3",
-      title: "Meeting reminder",
-      description: "Budget review at 2:00 PM in Room 305",
-      time: "2 hours ago",
-      read: true,
-      type: "info",
-    },
-    {
-      id: "4",
-      title: "Equipment maintenance",
-      description: "Copier service scheduled for tomorrow",
-      time: "Yesterday",
-      read: true,
-      type: "info",
-    },
-    {
-      id: "5",
-      title: "Order delivered",
-      description: "Office chairs delivery completed",
-      time: "Yesterday",
-      read: true,
-      type: "success",
-    },
-  ]
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
-  const getTypeStyles = (type: string) => {
+  useEffect(() => {
+    fetchNotifications()
+  }, [])
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/notifications/get-all')
+      const data = await response.json()
+      setNotifications(data.notifications)
+    } catch (error) {
+      console.error('Error fetching notifications:', error)
+    }
+  }
+
+  const markAsRead = async (id: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/notifications/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ seen: true }),
+      })
+      if (response.ok) {
+        setNotifications((prev) =>
+          prev.map((notification) =>
+            notification.id === id ? { ...notification, seen: true } : notification
+          )
+        )
+      }
+    } catch (error) {
+      console.error('Error updating notification:', error)
+    }
+  }
+
+const getTypeStyles = (type: string) => {
     switch (type) {
       case "warning":
         return "bg-yellow-500"
@@ -79,7 +74,7 @@ export function Notifications() {
             <CardTitle>Notifications</CardTitle>
             <CardDescription>Recent alerts and updates</CardDescription>
           </div>
-          <Badge>{notifications.filter((n) => !n.read).length}</Badge>
+          <Badge>{notifications.filter((n) => !n.seen).length}</Badge>
         </div>
       </CardHeader>
       <CardContent>
@@ -88,20 +83,20 @@ export function Notifications() {
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={cn("flex gap-2 rounded-lg border p-3", !notification.read && "bg-muted/50")}
+                className={cn("flex gap-2 rounded-lg border p-3", !notification.seen && "bg-muted/50")}
+                onClick={() => markAsRead(notification.id)}
               >
-                <div className={cn("mt-1 h-2 w-2 rounded-full", getTypeStyles(notification.type))} />
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-medium">{notification.title}</h4>
-                    {!notification.read && (
+                    <h4 className="text-sm font-medium">{notification.message}</h4>
+                    {!notification.seen && (
                       <Badge variant="outline" className="h-5 px-1 text-xs">
                         New
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">{notification.description}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{notification.time}</p>
+                  <p className="text-xs text-muted-foreground">{notification.message}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{notification.created_at}</p>
                 </div>
               </div>
             ))}
