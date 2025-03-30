@@ -1,5 +1,6 @@
 "use client"
 
+import '../app/globals.css';
 import type React from "react"
 
 import { useState } from "react"
@@ -34,28 +35,39 @@ export default function CalendarPage() {
 
   // Fetch events from endpoint
   const fetchEvents = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      // Replace with your actual endpoint
-      const response = await fetch("/api/events")
+      const response = await fetch(`http://localhost:8000/api/calendar/`);
       if (!response.ok) {
-        throw new Error("Failed to fetch events")
+        throw new Error("Failed to fetch events");
       }
-      const data = await response.json()
-      setEvents(data)
+  
+      const { data } = await response.json(); // assuming backend returns { data: [...] }
+      const mapped = data.map((event: any) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        start: event.start_time,
+        end: event.end_time,
+        type: event.type,
+        estimatedDuration: event.estimated_duration,
+        attendees: event.attendees || [],
+        notes: event.notes,
+      }));
+  
+      setEvents(mapped);
     } catch (error) {
-      console.error("Error fetching events:", error)
+      console.error("Error fetching events:", error);
       toast({
         title: "Error",
         description: "Failed to load events. Please try again.",
         variant: "destructive",
-      })
-      // Use sample data for demonstration
-      setEvents(sampleEvents)
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+  
 
   // Initial data fetch
   useState(() => {
@@ -186,39 +198,6 @@ interface Event {
   estimatedDuration: number
   attendees?: string[]
 }
-
-const sampleEvents: Event[] = [
-  {
-    id: "1",
-    title: "Team Standup",
-    description: "Daily team standup meeting",
-    start: new Date(new Date().setHours(10, 0, 0, 0)).toISOString(),
-    end: new Date(new Date().setHours(10, 30, 0, 0)).toISOString(),
-    type: "meeting",
-    estimatedDuration: 30,
-    attendees: ["John Doe", "Jane Smith", "Bob Johnson"],
-  },
-  {
-    id: "2",
-    title: "Client Request Review",
-    description: "Review new feature request from client",
-    start: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
-    end: new Date(new Date().setHours(15, 0, 0, 0)).toISOString(),
-    type: "request",
-    estimatedDuration: 60,
-    attendees: ["Jane Smith", "Client A"],
-  },
-  {
-    id: "3",
-    title: "Project Planning",
-    description: "Plan next sprint",
-    start: addDays(new Date(new Date().setHours(11, 0, 0, 0)), 1).toISOString(),
-    end: addDays(new Date(new Date().setHours(12, 30, 0, 0)), 1).toISOString(),
-    type: "meeting",
-    estimatedDuration: 90,
-    attendees: ["John Doe", "Jane Smith", "Bob Johnson", "Alice Williams"],
-  },
-]
 
 function DayView({ date, events }: { date: Date; events: Event[] }) {
   const hours = Array.from({ length: 12 }, (_, i) => i + 8) // 8 AM to 7 PM

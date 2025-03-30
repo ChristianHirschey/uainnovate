@@ -2,8 +2,28 @@
 CREATE TYPE request_type as ENUM ('supply', 'maintenance', 'suggestion', 'other');
 CREATE TYPE request_status as ENUM ('open', 'in_progress', 'resolved', 'closed');
 CREATE TYPE request_priority as ENUM ('very_low', 'low', 'medium', 'high', 'very_high');
+CREATE TYPE event_type AS ENUM (
+  'restock',
+  'delivery',
+  'cleaning',
+  'maintenance',
+  'meeting',
+  'note'
+);
 
--- TABLES
+-- 
+CREATE TABLE events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  type event_type NOT NULL,
+  start TIMESTAMP NOT NULL,
+  end TIMESTAMP NOT NULL,
+  estimated_duration INTEGER,
+  attendees TEXT[],
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE supplies (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name TEXT NOT NULL,

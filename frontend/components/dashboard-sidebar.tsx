@@ -49,21 +49,15 @@ export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
+            <Link href="/requests" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Requests
+            </Link>
+          </Button>
+          <Button variant="ghost" className="justify-start" asChild>
             <Link href="/supplies" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               Supplies
-            </Link>
-          </Button>
-          <Button variant="ghost" className="justify-start" asChild>
-            <Link href="/staff" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Staff
-            </Link>
-          </Button>
-          <Button variant="ghost" className="justify-start" asChild>
-            <Link href="/requests" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Requests
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
@@ -73,21 +67,9 @@ export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="/documents" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Documents
-            </Link>
-          </Button>
-          <Button variant="ghost" className="justify-start" asChild>
             <Link href="/reports" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Reports
-            </Link>
-          </Button>
-          <Button variant="ghost" className="justify-start" asChild>
-            <Link href="/settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
             </Link>
           </Button>
         </nav>
