@@ -7,6 +7,7 @@ from google import genai
 from google.genai import types
 import httpx
 from app.supabase.supabaseClient import supabase
+from app.models.user import RequestMessage
 
 def generate(message: str) -> dict:
     client = genai.Client(
@@ -65,9 +66,9 @@ def generate(message: str) -> dict:
     print("Generated JSON:", generated_json)
     return {"data": generated_json}
 
-async def create_prompt(message: str) -> dict:
+async def create_prompt(msg: RequestMessage) -> dict:
     try:
-        generated = generate(message)
+        generated = generate(msg.message)
         data = generated.get("data", {})
         category = data.get("category")
         priority_level = data.get("priority_level")
@@ -83,7 +84,7 @@ async def create_prompt(message: str) -> dict:
                     "https://3880-130-160-194-110.ngrok-free.app/api/requests/",
                     json={
                         "type": category,
-                        "description": message,
+                        "description": msg.message,
                         "priority": priority_level,
                         "user_id": "anonymous",
                         "supply_id": item_id.data[0].get("id") if item_id.data else None,
