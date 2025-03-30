@@ -1,6 +1,6 @@
-import { DashboardLayout } from "@/components/dashboard-layout"
+import LoginPage from "@/app/login/page"
 
 export default function Home() {
-  return <DashboardLayout />
+  return <LoginPage />
 }
 

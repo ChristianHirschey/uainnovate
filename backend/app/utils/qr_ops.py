@@ -11,7 +11,6 @@ import uuid
 from app.utils.supply_ops import get_all_supplies, consume_supply
 
 
-
 async def process_image(file: UploadFile = File(...)):
     """
     Process an image with Google's Gemini model and return structured data
@@ -40,9 +39,17 @@ async def process_image(file: UploadFile = File(...)):
         # Use gemini-1.5-pro-vision for vision capabilities
         model = "gemini-2.0-flash"
         print(f"Using model: {model}")
+
+        all_supplies = get_all_supplies()
+        supply_names = [supply["name"] for supply in all_supplies]
         
         # Create the prompt text
-        prompt_text = "Analyze this image and identify the focus item in the image (typically food, drink, or an office supply). Be specific and detailed about what you see in the image."
+        prompt_text = f"""
+        Analyze this image and identify the focus item in the image (typically food, drink, or an office supply). 
+        Be specific and detailed about what you see in the image.
+        Return the name of the item, the quantity (only numeric value), and the priority level (very_low/low/medium/high/very_high).
+        The item name should be one of the following: {supply_names}.
+        """
         
         # Create a base64 encoded string of the image
         # Skip this step to use raw bytes directly - following your working pattern
@@ -144,6 +151,7 @@ async def process_image(file: UploadFile = File(...)):
                 item["request_id"] = request_id
                 
             print("Returning parsed data")
+            handle_parsed_data(parsed_data)
             return parsed_data
             
         except json.JSONDecodeError as json_err:
@@ -176,24 +184,26 @@ def handle_parsed_data(parsed_data: Dict[str, Any]):
     all_supplies = get_all_supplies()
     
     # Map supplies by name for easier lookup
-    supply_map = {supply["name"].lower(): supply for supply in all_supplies}
+    supply_map = {supply["name"].lower(): supply["id"] for supply in all_supplies}
     
     results = []
     
     # Process each detected item
-    for item in parsed_data.get("items", []):
+    for item in (parsed_data.get("items", [])):
         item_name = item.get("name", "").lower()
         
         # Try to find a matching supply
-        matched_supply = None
+        matched_supply_name = None
+        matched_supply_id = None
         for supply_name, supply in supply_map.items():
             # Simple contains check
             if item_name in supply_name or supply_name in item_name:
-                matched_supply = supply
+                matched_supply_name = supply_name
+                matched_supply_id = supply
                 break
-                
+                        
         # If no direct match, try fuzzy matching
-        if not matched_supply:
+        if matched_supply_name is None:
             matches = difflib.get_close_matches(
                 item_name,
                 supply_map.keys(),
@@ -202,24 +212,25 @@ def handle_parsed_data(parsed_data: Dict[str, Any]):
             )
             
             if matches:
-                matched_supply = supply_map[matches[0]]
+                matched_supply_name = matches[0]
+                matched_supply_id = supply_map[matched_supply_name]
         
         # If we found a match, consume one unit
-        if matched_supply:
+        if matched_supply_name:
             # Create a supply action
             quantity = 1  # Default to consuming 1 unit
             
             # Consume the supply
             result = consume_supply(
-                supply_id=matched_supply["id"],
+                supply_id=str(matched_supply_id),
                 quantity=quantity,
                 user_id=None  # You might want to pass a user ID here
             )
             
             results.append({
                 "item": item.get("name"),
-                "matched_supply": matched_supply["name"],
-                "supply_id": matched_supply["id"],
+                "matched_supply": matched_supply_name,
+                "supply_id": matched_supply_id,
                 "consumed": result.get("success", False),
                 "new_stock": result.get("new_stock"),
                 "error": result.get("error")
@@ -231,5 +242,19 @@ def handle_parsed_data(parsed_data: Dict[str, Any]):
                 "matched": False,
                 "error": "No matching supply found"
             })
-    
-    return results
+
+        if matched_supply_id:
+            quantity_to_subtract = item.get("quantity", 1)
+        
+            consume_supply(
+                supply_id=str(matched_supply_id),
+                quantity=quantity_to_subtract,
+                user_id=None 
+            )
+
+if __name__ == "__main__":
+    parsed = {'items': [{'name': 'tissue', 'description': 'A cup of coffee with latte art, likely a cappuccino or latte.', 'quantity': 'Variable, depending on employee preference', 'priority': 'Medium', 'category': 'Beverage', 'request_id': 'cc76561d-a37a-4f62-be91-7e99eb306c17'}]}
+
+    results = handle_parsed_data(parsed)
+
+    print("Results:", results)

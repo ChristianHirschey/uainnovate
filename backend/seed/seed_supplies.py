@@ -44,7 +44,7 @@ def seed_supplies():
             "purchase_price": 0.79
         },
         {
-            "name": "Ballpoint Pens",
+            "name": "Pens",
             "description": "Blue ink, box of 12",
             "current_stock": 60,
             "max_stock": 120,
