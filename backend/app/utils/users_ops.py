@@ -6,7 +6,7 @@ import json
 from google import genai
 from google.genai import types
 from app.models.user import PromptCreate
-
+import httpx
 
 def generate(message: str) -> dict:
     client = genai.Client(
@@ -61,12 +61,19 @@ def generate(message: str) -> dict:
     # Return a dictionary with a "data" key, as expected by create_prompt.
     return {"data": generated_json}
 
-def create_prompt(prompt: PromptCreate) -> dict:
+async def create_prompt(prompt: PromptCreate) -> dict:
     try:
         response = generate(prompt.message)
-
+        #data.category
+        #data.priority_level
         if response.get("data"):
-            return {"success": True, "message": "Prompt added", "data": response["data"]}
+            with httpx.AsyncClient() as client:
+                response = await client.post(
+                "localhost:8000/api/requests/",
+                data={"type": response.category, "description": prompt.message, "priority": response.priority_level, "user_id": prompt.user_id}
+    )
+
+            return {"success": True, "message": "Prompt added"}
 
         return {
             "success": False,

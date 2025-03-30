@@ -3,8 +3,7 @@ from app.utils.log_ops import get_all_logs
 
 router = APIRouter()
 
-@router.get("/")
-def read_logs():
+
 @router.get("/")
 def get_logs():
     try:
