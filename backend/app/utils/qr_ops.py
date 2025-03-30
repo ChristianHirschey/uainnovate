@@ -41,7 +41,11 @@ async def process_image(file: UploadFile = File(...)):
         print(f"Using model: {model}")
         
         # Create the prompt text
-        prompt_text = "Analyze this image and identify the focus item in the image (typically food, drink, or an office supply). Be specific and detailed about what you see in the image."
+        prompt_text = """
+        Analyze this image and identify the focus item in the image (typically food, drink, or an office supply). 
+        Be specific and detailed about what you see in the image.
+        Return the name of the item, the quantity (only numeric value), and the priority level (very_low/low/medium/high/very_high).
+        """
         
         # Create a base64 encoded string of the image
         # Skip this step to use raw bytes directly - following your working pattern
