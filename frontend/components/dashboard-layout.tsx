@@ -61,13 +61,12 @@ export function DashboardLayout() {
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <Tabs defaultValue="overview" className="space-y-4">
             <TabsContent value="overview" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
                 <TodoList />
-                <QuickActions />
-                <Notifications />
+                <SupplySuggestions />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <SupplySuggestions />
+                <Notifications />
                 <Calendar />
               </div>
             </TabsContent>

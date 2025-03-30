@@ -1,12 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from app.supabase.supabaseClient import supabase
-from app.utils.users_ops import create_prompt, create_qr_request
-from app.models.user import PromptCreate, QRRequestCreate
+from app.utils.users_ops import create_prompt
 
 router = APIRouter()
 
 @router.post("/")
-async def create_request(message: PromptCreate):
+async def create_request(message: str):
     
     result = await create_prompt(message)
     if result["success"]:
@@ -14,10 +13,3 @@ async def create_request(message: PromptCreate):
     else:
         raise HTTPException(status_code=400, detail=result["error"])
     
-@router.post("/qr-request")
-async def create_qr_request(request: QRRequestCreate):
-    result = await create_qr_request(request)
-    if result["success"]:
-        return result
-    else:
-        raise HTTPException(status_code=400, detail=result["error"])

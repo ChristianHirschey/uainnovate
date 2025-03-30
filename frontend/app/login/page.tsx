@@ -1,25 +1,11 @@
 "use client";
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { login, signup } from "./actions";
 import { LockIcon, MailIcon } from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  useEffect(() => {
-    // Detect screen size and prefill credentials
-    if (window.innerWidth >= 768) {
-      // Big screens (e.g., tablets, desktops)
-      setEmail("cjhirschey@crimson.ua.edu");
-      setPassword("fortnite");
-    } else {
-      // Small screens (e.g., mobile devices)
-      setEmail("christian.hirschey@gmail.com");
-      setPassword("fortnite");
-    }
-  }, []);
+  const [email, setEmail] = useState("cjhirschey@crimson.ua.edu"); // Default email
+  const [password, setPassword] = useState("admin"); // Default password
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -37,48 +23,49 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-8 bg-white py-8 px-4 shadow-2xl sm:rounded-xl sm:px-10 border border-gray-100">
-  <form className="space-y-6">
-    <div>
-      <label htmlFor="email" className="block text-sm font-medium text-black">
-        Email address
-      </label>
-      <div className="mt-1 relative rounded-md shadow-sm">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <MailIcon className="h-5 w-5 text-gray-400" />
-        </div>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary transition duration-150 ease-in-out sm:text-sm text-black"
-          placeholder="you@example.com"
-        />
-      </div>
-    </div>
+          <form className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-black">
+                Email address
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MailIcon className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary transition duration-150 ease-in-out sm:text-sm text-black"
+                  placeholder="you@example.com"
+                />
+              </div>
+            </div>
 
-    <div>
-      <label htmlFor="password" className="block text-sm font-medium text-black">
-        Password
-      </label>
-      <div className="mt-1 relative rounded-md shadow-sm">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <LockIcon className="h-5 w-5 text-gray-400" />
-        </div>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary transition duration-150 ease-in-out sm:text-sm text-black"
-          placeholder="••••••••"
-        />
-      </div>
-    </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-black">
+                Password
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <LockIcon className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary transition duration-150 ease-in-out sm:text-sm text-black"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <button
                 formAction={login}
