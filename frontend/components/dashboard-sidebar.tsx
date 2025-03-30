@@ -49,12 +49,6 @@ export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
-            <Link href="/orders" className="flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Orders
-            </Link>
-          </Button>
-          <Button variant="ghost" className="justify-start" asChild>
             <Link href="/supplies" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               Supplies
@@ -64,6 +58,12 @@ export function DashboardSidebar({ open, setOpen }: DashboardSidebarProps) {
             <Link href="/staff" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Staff
+            </Link>
+          </Button>
+          <Button variant="ghost" className="justify-start" asChild>
+            <Link href="/requests" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Requests
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start" asChild>
