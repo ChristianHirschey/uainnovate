@@ -1,3 +1,7 @@
+"use client"
+
+import '../app/globals.css';
+
 import React, { useState, useEffect } from 'react';
 import { 
   LineChart, Line, BarChart, Bar, PieChart, Pie, 
