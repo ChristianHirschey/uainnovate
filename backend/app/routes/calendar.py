@@ -18,6 +18,7 @@ def read_events():
 
 @router.post("/")
 def add_event(event: EventCreate):
+    
     try:
         response = create_event(event)
         if response["success"]:
