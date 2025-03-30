@@ -256,7 +256,13 @@ export default function SupplySuggestions({ fullView = false }: SupplySuggestion
                           <Button
                             size="sm"
                             className="flex items-center gap-2"
-                            onClick={() => orderSupply(supply.id)}
+                            onClick={async () => {
+                              await orderSupply(supply.id); // Call orderSupply
+                              const newTab = window.open(supply.purchase_url, "_blank", "noopener,noreferrer"); // Open in a new tab without focus
+                              if (newTab) {
+                                window.focus(); // Refocus the current tab
+                              }
+                            }}
                           >
                             <ShoppingCart className="h-4 w-4" />
                             Order Now (${supply.purchase_price.toFixed(2)})
@@ -282,10 +288,22 @@ export default function SupplySuggestions({ fullView = false }: SupplySuggestion
                 size="sm" 
                 className="bg-red-600 hover:bg-red-700 text-white"
                 onClick={() => {
-                  // This would ideally open a bulk order dialog
-                  const lowStockItems = supplies.filter(s => s.current_stock < s.threshold)
-                  lowStockItems.forEach(item => orderSupply(item.id))
+                  const lowStockItems = supplies.filter(s => s.current_stock < s.threshold);
+                
+                  // Open purchase URLs immediately to avoid popup blockers
+                  lowStockItems.forEach(item => {
+                    if (item.purchase_url) {
+                      // Open each purchase URL in a new tab synchronously
+                      window.open(item.purchase_url, `_blank_${item.id}`, "noopener,noreferrer");
+                    }
+                  });
+                
+                  // Then optionally trigger your async logic afterward (won't block popups)
+                  lowStockItems.forEach(async item => {
+                    await orderSupply(item.id);
+                  });
                 }}
+                
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Order All Low Stock Items

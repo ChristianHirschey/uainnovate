@@ -244,11 +244,11 @@ def handle_parsed_data(parsed_data: Dict[str, Any]):
             })
 
         if matched_supply_id:
-            quantity_to_subtract = item.get("quantity", 1)
+            quantity_to_subtract = int(item.get("quantity", 1))
         
             consume_supply(
                 supply_id=str(matched_supply_id),
-                quantity=quantity_to_subtract,
+                quantity=quantity_to_subtract-1,
                 user_id=None 
             )
 
