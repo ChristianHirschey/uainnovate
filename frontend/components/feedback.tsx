@@ -224,7 +224,7 @@ export function Feedback() {
             </div>
           </div>
         ) : (
-          <ScrollArea className="h-[400px] rounded-lg border bg-white">
+          <ScrollArea className="h-full rounded-lg border bg-white">
             <div className="space-y-2 p-1">
               {Array.isArray(filteredRequests) && filteredRequests.map((item, index) => {
                 const typeInfo = getTypeInfo(item.type)
