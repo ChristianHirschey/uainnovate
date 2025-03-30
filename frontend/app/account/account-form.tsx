@@ -3,10 +3,28 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 
-export default function AccountForm({ user }: { user: User | null }) {
+export default function AccountForm() {
   const supabase = createClient()
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(false)
-  const [email, setEmail] = useState<string>(user?.email || '')
+  const [email, setEmail] = useState<string>('')
+
+  useEffect(() => {
+    async function fetchUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
+        setUser(user)
+        setEmail(user.email || '')
+      }
+    }
+    fetchUser()
+  }, [supabase])
+
+  if (user === null) {
+    return <div>Loading user data...</div>
+  }
 
   const userRole = user!.role?.toString().trim().toLowerCase() || ''
   if (userRole !== 'admin') {
