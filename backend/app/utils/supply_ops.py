@@ -70,15 +70,17 @@ def delete_supply(supply_id: str):
         return {"success": False, "error": str(e)}
     
 
-def restock_supply(supply_id: str, quantity: int, user_id: Optional[str] = None, timestamp: Optional[datetime] = None):
+def restock_supply(supply_id: str, user_id: Optional[str] = None, timestamp: Optional[datetime] = None):
     try:
         supply = get_supply_by_id(supply_id)
         if not supply:
             return {"success": False, "error": "Supply not found"}
 
-        new_stock = supply["current_stock"] + quantity
-        if new_stock > supply["max_stock"]:
-            new_stock = supply["max_stock"]
+        # Set stock to full capacity (ignore quantity)
+        new_stock = supply["max_stock"]
+        restock_amount = new_stock - supply["current_stock"]
+        if restock_amount <= 0:
+            return {"success": True, "message": "Already at max stock"}
 
         # Update stock
         update_result = update_supply(supply_id, SupplyUpdate(current_stock=new_stock))
@@ -92,9 +94,9 @@ def restock_supply(supply_id: str, quantity: int, user_id: Optional[str] = None,
         supabase.from_("supply_logs").insert({
             "supply_id": supply_id,
             "user_id": user_id,
-            "change": quantity,
+            "change": restock_amount,
             "reason": "restock",
-            "message": f"Restocked {quantity} units",
+            "message": f"Auto-restocked {restock_amount} units to reach full capacity",
             "timestamp": log_time.isoformat()
         }).execute()
 
