@@ -78,7 +78,7 @@ export function SupplySuggestions({ fullView = false }: SupplySuggestionsProps) 
         <CardDescription>Items that need to be reordered soon</CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className={cn("pr-4", fullView ? "h-[400px]" : "h-[285px]")}>
+        <ScrollArea className={cn("pr-4", fullView ? "h-[400px]" : "h-[295px]")}>
           <div className="space-y-4">
             {(fullView ? supplies : lowSupplies).map((supply) => (
               <div key={supply.id} className="flex flex-col space-y-2">
