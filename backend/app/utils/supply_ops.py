@@ -70,18 +70,23 @@ def delete_supply(supply_id: str):
         return {"success": False, "error": str(e)}
     
 
-def restock_supply(supply_id: str, quantity: int, user_id: Optional[str] = None):
+def restock_supply(supply_id: str, quantity: int, user_id: Optional[str] = None, timestamp: Optional[datetime] = None):
     try:
         supply = get_supply_by_id(supply_id)
         if not supply:
             return {"success": False, "error": "Supply not found"}
 
         new_stock = supply["current_stock"] + quantity
+        if new_stock > supply["max_stock"]:
+            new_stock = supply["max_stock"]
 
         # Update stock
         update_result = update_supply(supply_id, SupplyUpdate(current_stock=new_stock))
         if not update_result.get("success"):
             return {"success": False, "error": "Failed to update stock"}
+
+        # Use provided timestamp or fallback to now
+        log_time = timestamp or datetime.now(timezone.utc)
 
         # Log restock
         supabase.from_("supply_logs").insert({
@@ -90,7 +95,7 @@ def restock_supply(supply_id: str, quantity: int, user_id: Optional[str] = None)
             "change": quantity,
             "reason": "restock",
             "message": f"Restocked {quantity} units",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": log_time.isoformat()
         }).execute()
 
         return {"success": True, "new_stock": new_stock}
@@ -100,7 +105,7 @@ def restock_supply(supply_id: str, quantity: int, user_id: Optional[str] = None)
         return {"success": False, "error": str(e)}
 
 
-def consume_supply(supply_id: str, quantity: int, user_id: Optional[str] = None):
+def consume_supply(supply_id: str, quantity: int, user_id: Optional[str] = None, timestamp: Optional[datetime] = None):
     try:
         supply = get_supply_by_id(supply_id)
         if not supply:
@@ -117,13 +122,15 @@ def consume_supply(supply_id: str, quantity: int, user_id: Optional[str] = None)
             return {"success": False, "error": "Failed to update stock"}
 
         # Log usage
+        log_time = timestamp or datetime.now(timezone.utc)
+
         supabase.from_("supply_logs").insert({
             "supply_id": supply_id,
             "user_id": user_id,
             "change": -quantity,
             "reason": "usage",
             "message": f"Consumed {quantity} units",
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": log_time.isoformat()
         }).execute()
 
         return {"success": True, "new_stock": new_stock}

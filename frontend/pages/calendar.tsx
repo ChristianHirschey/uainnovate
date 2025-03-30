@@ -1,13 +1,25 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { CalendarIcon, ChevronLeft, ChevronRight, Plus } from "lucide-react"
-import { addDays, format, startOfToday } from "date-fns"
-
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import "../app/globals.css";
+import type React from "react";
+import { useEffect, useState } from "react";
+import {
+  CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Menu,
+  X,
+  Home,
+  Calendar as CalendarIcon2,
+  Users,
+  Settings,
+  BarChart,
+  MessageSquare,
+} from "lucide-react";
+import { addDays, format, startOfToday } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -16,448 +28,455 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
+import { DashboardSidebar } from "@/components/dashboard-sidebar";
+
 
 export default function CalendarPage() {
-  const [date, setDate] = useState<Date>(startOfToday())
-  const [view, setView] = useState<"day" | "week" | "month">("week")
-  const [isAddEventOpen, setIsAddEventOpen] = useState(false)
-  const [events, setEvents] = useState<Event[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [date, setDate] = useState<Date>(startOfToday());
+  const [view, setView] = useState<"day" | "week" | "month">("week");
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Fetch events from endpoint
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
   const fetchEvents = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      // Replace with your actual endpoint
-      const response = await fetch("/api/events")
-      if (!response.ok) {
-        throw new Error("Failed to fetch events")
-      }
-      const data = await response.json()
-      setEvents(data)
+      const response = await fetch("http://localhost:8000/api/calendar/");
+      if (!response.ok) throw new Error("Failed to fetch events");
+      const { data } = await response.json();
+      const mapped = data.map((event: any) => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        start: event.start_time,
+        end: event.end_time,
+        type: event.type,
+        estimatedDuration: event.estimated_duration,
+        attendees: event.attendees || [],
+        notes: event.notes,
+      }));
+      setEvents(mapped);
     } catch (error) {
-      console.error("Error fetching events:", error)
+      console.error("Fetch error:", error);
       toast({
         title: "Error",
-        description: "Failed to load events. Please try again.",
+        description: "Failed to load events.",
         variant: "destructive",
-      })
-      // Use sample data for demonstration
-      setEvents(sampleEvents)
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
-  // Initial data fetch
-  useState(() => {
-    fetchEvents()
-  })
+  };
 
   const addEvent = async (event: Event) => {
     try {
-      // Replace with your actual endpoint
       const response = await fetch("/api/events", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(event),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to add event")
-      }
-
-      // Refresh events
-      fetchEvents()
-      setIsAddEventOpen(false)
-      toast({
-        title: "Success",
-        description: "Event added successfully",
-      })
+      });
+      if (!response.ok) throw new Error("Failed to add event");
+      fetchEvents();
+      setIsAddEventOpen(false);
+      toast({ title: "Success", description: "Event added!" });
     } catch (error) {
-      console.error("Error adding event:", error)
-      toast({
-        title: "Error",
-        description: "Failed to add event. Please try again.",
-        variant: "destructive",
-      })
-
-      // For demonstration, add to local state
-      setEvents([...events, { ...event, id: String(Date.now()) }])
-      setIsAddEventOpen(false)
+      console.error("Add event error:", error);
+      toast({ title: "Error", description: "Could not add event", variant: "destructive" });
+      setEvents([...events, { ...event, id: String(Date.now()) }]);
+      setIsAddEventOpen(false);
     }
-  }
+  };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Calendar</h1>
-        <div className="flex items-center gap-4">
-          <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week" | "month")}>
-            <TabsList>
-              <TabsTrigger value="day">Day</TabsTrigger>
-              <TabsTrigger value="week">Week</TabsTrigger>
-              <TabsTrigger value="month">Month</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                const newDate = new Date(date)
-                if (view === "day") newDate.setDate(date.getDate() - 1)
-                else if (view === "week") newDate.setDate(date.getDate() - 7)
-                else newDate.setMonth(date.getMonth() - 1)
-                setDate(newDate)
-              }}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="min-w-[150px]">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(date, "PPP")}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
-              </PopoverContent>
-            </Popover>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                const newDate = new Date(date)
-                if (view === "day") newDate.setDate(date.getDate() + 1)
-                else if (view === "week") newDate.setDate(date.getDate() + 7)
-                else newDate.setMonth(date.getMonth() + 1)
-                setDate(newDate)
-              }}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Event
+    <div className="flex h-screen w-full bg-gray-50">
+      <DashboardSidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+      
+      <div className="flex-1 overflow-auto">
+        <header className="sticky top-0 z-10 flex h-16 items-center border-b bg-white px-4 shadow-sm">
+          <button
+            className="mr-4 rounded-md p-1 hover:bg-gray-100 lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <h1 className="text-xl font-bold">Calendar</h1>
+          <div className="ml-auto flex items-center gap-4">
+            <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week" | "month")} className="hidden md:block">
+              <TabsList>
+                <TabsTrigger value="day">Day</TabsTrigger>
+                <TabsTrigger value="week">Week</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" onClick={() => shiftDate(-1)}>
+                <ChevronLeft className="h-4 w-4" />
               </Button>
-            </DialogTrigger>
-            <AddEventDialog onAddEvent={addEvent} onCancel={() => setIsAddEventOpen(false)} />
-          </Dialog>
-        </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="min-w-[150px] hidden sm:flex">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(date, "PPP")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
+                </PopoverContent>
+              </Popover>
+              <Button variant="outline" size="icon" onClick={() => shiftDate(1)}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary hover:bg-primary/90">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Event
+                </Button>
+              </DialogTrigger>
+              <AddEventDialog onAddEvent={addEvent} onCancel={() => setIsAddEventOpen(false)} />
+            </Dialog>
+          </div>
+        </header>
+
+        <main className="p-4 md:p-6">
+          <div className="mb-4 md:hidden">
+            <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week" | "month")}>
+              <TabsList className="w-full">
+                <TabsTrigger value="day" className="flex-1">Day</TabsTrigger>
+                <TabsTrigger value="week" className="flex-1">Week</TabsTrigger>
+                <TabsTrigger value="month" className="flex-1">Month</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center h-[600px]">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg border shadow">
+              {view === "day" && <DayView date={date} events={events} />}
+              {view === "week" && <WeekView date={date} events={events} />}
+              {view === "month" && <MonthView date={date} events={events} />}
+            </div>
+          )}
+        </main>
       </div>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-[600px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        <div className="bg-card rounded-lg border shadow">
-          {view === "day" && <DayView date={date} events={events} />}
-          {view === "week" && <WeekView date={date} events={events} />}
-          {view === "month" && <MonthView date={date} events={events} />}
-        </div>
-      )}
     </div>
-  )
-}
+  );
 
-interface Event {
-  id: string
-  title: string
-  description?: string
-  start: string
-  end: string
-  type: "meeting" | "request"
-  estimatedDuration: number
-  attendees?: string[]
+  function shiftDate(direction: number) {
+    const newDate = new Date(date);
+    if (view === "day") newDate.setDate(date.getDate() + direction);
+    else if (view === "week") newDate.setDate(date.getDate() + 7 * direction);
+    else newDate.setMonth(date.getMonth() + direction);
+    setDate(newDate);
+  }
 }
-
-const sampleEvents: Event[] = [
-  {
-    id: "1",
-    title: "Team Standup",
-    description: "Daily team standup meeting",
-    start: new Date(new Date().setHours(10, 0, 0, 0)).toISOString(),
-    end: new Date(new Date().setHours(10, 30, 0, 0)).toISOString(),
-    type: "meeting",
-    estimatedDuration: 30,
-    attendees: ["John Doe", "Jane Smith", "Bob Johnson"],
-  },
-  {
-    id: "2",
-    title: "Client Request Review",
-    description: "Review new feature request from client",
-    start: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
-    end: new Date(new Date().setHours(15, 0, 0, 0)).toISOString(),
-    type: "request",
-    estimatedDuration: 60,
-    attendees: ["Jane Smith", "Client A"],
-  },
-  {
-    id: "3",
-    title: "Project Planning",
-    description: "Plan next sprint",
-    start: addDays(new Date(new Date().setHours(11, 0, 0, 0)), 1).toISOString(),
-    end: addDays(new Date(new Date().setHours(12, 30, 0, 0)), 1).toISOString(),
-    type: "meeting",
-    estimatedDuration: 90,
-    attendees: ["John Doe", "Jane Smith", "Bob Johnson", "Alice Williams"],
-  },
-]
 
 function DayView({ date, events }: { date: Date; events: Event[] }) {
-  const hours = Array.from({ length: 12 }, (_, i) => i + 8) // 8 AM to 7 PM
+  const startHour = 8;
+  const endHour = 20;
+  const pxPerMinute = 1; // 1px per minute = 60px per hour
 
-  const filteredEvents = events.filter((event) => {
-    const eventDate = new Date(event.start)
+  const filtered = events.filter((e) => {
+    const d = new Date(e.start);
     return (
-      eventDate.getDate() === date.getDate() &&
-      eventDate.getMonth() === date.getMonth() &&
-      eventDate.getFullYear() === date.getFullYear()
-    )
-  })
+      d.getDate() === date.getDate() &&
+      d.getMonth() === date.getMonth() &&
+      d.getFullYear() === date.getFullYear()
+    );
+  });
+
+  // Function to calculate overlapping events
+  const calculateOverlaps = (events: Event[]) => {
+    const overlaps: { [key: string]: number } = {};
+    events.forEach((event, index) => {
+      overlaps[event.id] = 0;
+      for (let i = 0; i < index; i++) {
+        const prevEvent = events[i];
+        if (
+          new Date(event.start) < new Date(prevEvent.end) &&
+          new Date(event.end) > new Date(prevEvent.start)
+        ) {
+          overlaps[event.id]++;
+        }
+      }
+    });
+    return overlaps;
+  };
+
+  const overlaps = calculateOverlaps(filtered);
 
   return (
-    <div className="grid grid-cols-1 gap-1">
-      <div className="text-center py-2 font-medium border-b">{format(date, "EEEE, MMMM d, yyyy")}</div>
-      <div className="grid grid-cols-[60px_1fr] h-[600px] overflow-y-auto">
-        <div className="border-r">
-          {hours.map((hour) => (
-            <div key={hour} className="h-20 border-b text-xs text-right pr-2 pt-1 text-muted-foreground">
-              {hour % 12 === 0 ? 12 : hour % 12}:00 {hour >= 12 ? "PM" : "AM"}
-            </div>
-          ))}
-        </div>
-        <div className="relative">
-          {hours.map((hour) => (
-            <div key={hour} className="h-20 border-b"></div>
-          ))}
-          {filteredEvents.map((event) => {
-            const startTime = new Date(event.start)
-            const endTime = new Date(event.end)
-            const startHour = startTime.getHours()
-            const startMinute = startTime.getMinutes()
-            const endHour = endTime.getHours()
-            const endMinute = endTime.getMinutes()
+    <div className="relative border-l border-t h-[720px]">
+      {Array.from({ length: endHour - startHour }, (_, i) => {
+        const hour = startHour + i;
+        return (
+          <div
+            key={hour}
+            className="absolute left-0 w-full border-t text-xs text-muted-foreground"
+            style={{ top: `${(hour - startHour) * 60}px` }}
+          >
+            <div className="pl-2">{hour}:00</div>
+          </div>
+        );
+      })}
 
-            const top = ((startHour - 8) * 60 + startMinute) * (20 / 60)
-            const height = ((endHour - startHour) * 60 + (endMinute - startMinute)) * (20 / 60)
+      {filtered.map((event, index) => {
+        const start = new Date(event.start);
+        const end = new Date(event.end);
+        const startMins = start.getHours() * 60 + start.getMinutes();
+        const endMins = end.getHours() * 60 + end.getMinutes();
+        const top = startMins - startHour * 60;
+        const height = endMins - startMins;
+        const overlapCount = overlaps[event.id];
+        const width = `calc(${100 / (overlapCount + 1)}% - 2px)`;
+        const left = `calc(${(100 / (overlapCount + 1)) * index}% + 60px)`;
 
-            return (
-              <div
-                key={event.id}
-                className={`absolute left-1 right-1 rounded-md p-2 overflow-hidden ${
-                  event.type === "meeting" ? "bg-blue-100 border-blue-300" : "bg-amber-100 border-amber-300"
-                } border`}
-                style={{ top: `${top}px`, height: `${height}px` }}
-              >
-                <div className="font-medium text-sm truncate">{event.title}</div>
-                <div className="text-xs text-muted-foreground">
-                  {format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}
-                </div>
-                <div className="text-xs mt-1">Est: {event.estimatedDuration} min</div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+        return (
+          <div
+            key={event.id}
+            className={`absolute rounded-md p-2 text-sm text-black overflow-hidden border shadow ${
+              event.type === "meeting" ? "bg-blue-200 border-blue-400" : "bg-yellow-100 border-yellow-300"
+            }`}
+            style={{ top: `${top}px`, height: `${height}px`, width, left }}
+          >
+            <div className="font-medium">{event.title}</div>
+            <div className="text-xs">{format(start, "h:mm a")} - {format(end, "h:mm a")}</div>
+          </div>
+        );
+      })}
     </div>
-  )
+  );
 }
 
 function WeekView({ date, events }: { date: Date; events: Event[] }) {
-  const hours = Array.from({ length: 12 }, (_, i) => i + 8) // 8 AM to 7 PM
+  const startHour = 8;
+  const endHour = 20;
+  const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
 
-  // Get the start of the week (Sunday)
-  const startOfWeek = new Date(date)
-  startOfWeek.setDate(date.getDate() - date.getDay())
+  const weekStart = new Date(date);
+  weekStart.setDate(date.getDate() - date.getDay());
 
-  // Create an array of the 7 days of the week
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const day = new Date(startOfWeek)
-    day.setDate(startOfWeek.getDate() + i)
-    return day
-  })
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    return d;
+  });
+
+  // Function to calculate overlapping events
+  const calculateOverlaps = (events: Event[]) => {
+    const overlaps: { [key: string]: number } = {};
+    events.forEach((event, index) => {
+      overlaps[event.id] = 0;
+      for (let i = 0; i < index; i++) {
+        const prevEvent = events[i];
+        if (
+          new Date(event.start) < new Date(prevEvent.end) &&
+          new Date(event.end) > new Date(prevEvent.start)
+        ) {
+          overlaps[event.id]++;
+        }
+      }
+    });
+    return overlaps;
+  };
 
   return (
-    <div className="grid grid-cols-1 gap-1">
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b">
-        <div className="border-r"></div>
-        {weekDays.map((day, index) => (
-          <div
-            key={index}
-            className={`text-center py-2 font-medium ${
-              day.getDate() === new Date().getDate() &&
-              day.getMonth() === new Date().getMonth() &&
-              day.getFullYear() === new Date().getFullYear()
-                ? "bg-primary/10"
+    <div className="relative h-[720px] overflow-auto">
+      <div className="grid grid-cols-8 sticky top-0 z-10 bg-white border-b">
+        <div className="border-r h-16 flex items-end justify-center pb-2 text-xs text-gray-500 font-medium">
+          <span>TIME</span>
+        </div>
+        {days.map((day, i) => (
+          <div 
+            key={i} 
+            className={`h-16 border-r text-center py-2 flex flex-col justify-between ${
+              day.getDate() === new Date().getDate() && 
+              day.getMonth() === new Date().getMonth() && 
+              day.getFullYear() === new Date().getFullYear() 
+                ? "bg-blue-50" 
                 : ""
             }`}
           >
-            <div>{format(day, "EEE")}</div>
-            <div>{format(day, "d")}</div>
+            <div className="text-sm font-medium">{format(day, "EEE")}</div>
+            <div className={`text-lg font-bold mx-auto flex items-center justify-center h-8 w-8 ${
+              day.getDate() === new Date().getDate() && 
+              day.getMonth() === new Date().getMonth() && 
+              day.getFullYear() === new Date().getFullYear() 
+                ? "rounded-full bg-primary text-white" 
+                : ""
+            }`}>
+              {day.getDate()}
+            </div>
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] h-[600px] overflow-y-auto">
-        <div className="border-r">
+
+      <div className="grid grid-cols-8">
+        <div className="col-span-1 border-r">
           {hours.map((hour) => (
-            <div key={hour} className="h-20 border-b text-xs text-right pr-2 pt-1 text-muted-foreground">
-              {hour % 12 === 0 ? 12 : hour % 12}:00 {hour >= 12 ? "PM" : "AM"}
+            <div key={hour} className="h-[60px] text-xs text-right pr-2 pt-2 text-gray-500 border-b">
+              {hour}:00
             </div>
           ))}
         </div>
-        {weekDays.map((day, dayIndex) => (
-          <div key={dayIndex} className="relative border-r">
-            {hours.map((hour) => (
-              <div key={hour} className="h-20 border-b"></div>
-            ))}
-            {events
-              .filter((event) => {
-                const eventDate = new Date(event.start)
-                return (
-                  eventDate.getDate() === day.getDate() &&
-                  eventDate.getMonth() === day.getMonth() &&
-                  eventDate.getFullYear() === day.getFullYear()
-                )
-              })
-              .map((event) => {
-                const startTime = new Date(event.start)
-                const endTime = new Date(event.end)
-                const startHour = startTime.getHours()
-                const startMinute = startTime.getMinutes()
-                const endHour = endTime.getHours()
-                const endMinute = endTime.getMinutes()
 
-                const top = ((startHour - 8) * 60 + startMinute) * (20 / 60)
-                const height = ((endHour - startHour) * 60 + (endMinute - startMinute)) * (20 / 60)
+        {days.map((day, dayIndex) => {
+          const dayEvents = events.filter((e) => {
+            const d = new Date(e.start);
+            return (
+              d.getDate() === day.getDate() &&
+              d.getMonth() === day.getMonth() &&
+              d.getFullYear() === day.getFullYear()
+            );
+          });
+
+          const overlaps = calculateOverlaps(dayEvents);
+
+          return (
+            <div key={dayIndex} className="col-span-1 relative border-r">
+              {hours.map((hour) => (
+                <div key={hour} className="h-[60px] border-b"></div>
+              ))}
+
+              {dayEvents.map((event, index) => {
+                const start = new Date(event.start);
+                const end = new Date(event.end);
+                const startMins = start.getHours() * 60 + start.getMinutes();
+                const endMins = end.getHours() * 60 + end.getMinutes();
+                const top = (startMins - startHour * 60);
+                const height = Math.max(endMins - startMins, 30); // Ensure a minimum height of 30px
+                const overlapCount = overlaps[event.id];
+                const width = `calc(${100 / (overlapCount + 1)}% - 2px)`;
+                const left = `calc(${(100 / (overlapCount + 1)) * index}% + 1px)`;
 
                 return (
                   <div
                     key={event.id}
-                    className={`absolute left-1 right-1 rounded-md p-1 overflow-hidden ${
-                      event.type === "meeting" ? "bg-blue-100 border-blue-300" : "bg-amber-100 border-amber-300"
-                    } border`}
-                    style={{ top: `${top}px`, height: `${height}px` }}
+                    className={`absolute rounded-md p-1 text-xs overflow-hidden border shadow ${
+                      event.type === "meeting" 
+                        ? "bg-blue-50 border-blue-200 text-blue-800" 
+                        : "bg-amber-50 border-amber-200 text-amber-800"
+                    }`}
+                    style={{ top: `${top}px`, height: `${height}px`, width, left }}
                   >
-                    <div className="font-medium text-xs truncate">{event.title}</div>
-                    <div className="text-[10px] text-muted-foreground">{format(startTime, "h:mm a")}</div>
-                    <div className="text-[10px]">Est: {event.estimatedDuration}m</div>
+                    <div className="font-medium truncate">{event.title}</div>
+                    <div className="text-[10px]">{format(start, "h:mm a")}</div>
                   </div>
-                )
+                );
               })}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </div>
-  )
+  );
 }
 
 function MonthView({ date, events }: { date: Date; events: Event[] }) {
-  // Get the first day of the month
-  const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1)
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+  const firstWeekday = firstDay.getDay();
+  const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
-  // Get the day of the week for the first day (0 = Sunday, 1 = Monday, etc.)
-  const firstDayOfWeek = firstDayOfMonth.getDay()
+  const days: { date: Date; isCurrentMonth: boolean }[] = [];
 
-  // Get the number of days in the month
-  const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-
-  // Create an array of days to display (including days from previous/next month to fill the grid)
-  const days = []
-
-  // Add days from previous month
-  const prevMonthDays = new Date(date.getFullYear(), date.getMonth(), 0).getDate()
-  for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-    days.push({
-      date: new Date(date.getFullYear(), date.getMonth() - 1, prevMonthDays - i),
-      isCurrentMonth: false,
-    })
+  for (let i = firstWeekday - 1; i >= 0; i--) {
+    const d = new Date(date.getFullYear(), date.getMonth(), -i);
+    days.push({ date: d, isCurrentMonth: false });
   }
 
-  // Add days from current month
   for (let i = 1; i <= daysInMonth; i++) {
-    days.push({
-      date: new Date(date.getFullYear(), date.getMonth(), i),
-      isCurrentMonth: true,
-    })
+    const d = new Date(date.getFullYear(), date.getMonth(), i);
+    days.push({ date: d, isCurrentMonth: true });
   }
 
-  // Add days from next month
-  const remainingDays = 42 - days.length // 6 rows of 7 days
-  for (let i = 1; i <= remainingDays; i++) {
-    days.push({
-      date: new Date(date.getFullYear(), date.getMonth() + 1, i),
-      isCurrentMonth: false,
-    })
+  const extra = 42 - days.length;
+  for (let i = 1; i <= extra; i++) {
+    const d = new Date(date.getFullYear(), date.getMonth() + 1, i);
+    days.push({ date: d, isCurrentMonth: false });
   }
 
   return (
-    <div className="grid grid-cols-7 gap-1 p-2">
-      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-        <div key={day} className="text-center font-medium py-2">
-          {day}
-        </div>
-      ))}
-      {days.map((day, index) => {
-        const dayEvents = events.filter((event) => {
-          const eventDate = new Date(event.start)
-          return (
-            eventDate.getDate() === day.date.getDate() &&
-            eventDate.getMonth() === day.date.getMonth() &&
-            eventDate.getFullYear() === day.date.getFullYear()
-          )
-        })
-
-        return (
-          <div
-            key={index}
-            className={`min-h-[100px] border rounded-md p-1 ${
-              day.isCurrentMonth ? "bg-background" : "bg-muted/30 text-muted-foreground"
-            } ${
-              day.date.getDate() === new Date().getDate() &&
-              day.date.getMonth() === new Date().getMonth() &&
-              day.date.getFullYear() === new Date().getFullYear()
-                ? "border-primary"
-                : "border-border"
-            }`}
-          >
-            <div className="text-right text-sm font-medium p-1">{day.date.getDate()}</div>
-            <div className="space-y-1">
-              {dayEvents.slice(0, 3).map((event) => (
-                <div
-                  key={event.id}
-                  className={`text-xs p-1 rounded truncate ${
-                    event.type === "meeting" ? "bg-blue-100 text-blue-800" : "bg-amber-100 text-amber-800"
-                  }`}
-                >
-                  {format(new Date(event.start), "h:mm a")} - {event.title}
-                </div>
-              ))}
-              {dayEvents.length > 3 && (
-                <div className="text-xs text-center text-muted-foreground">+{dayEvents.length - 3} more</div>
-              )}
-            </div>
+    <div>
+      <div className="sticky top-0 left-0 z-10 bg-white text-sm font-medium px-4 py-2 border-b">
+        {format(date, "MMMM yyyy")}
+      </div>
+      <div className="grid grid-cols-7 gap-1 p-2">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+          <div key={day} className="text-center font-medium py-2 text-gray-600">
+            {day}
           </div>
-        )
-      })}
+        ))}
+        {days.map((day, i) => {
+          const isToday = 
+            day.date.getDate() === new Date().getDate() && 
+            day.date.getMonth() === new Date().getMonth() && 
+            day.date.getFullYear() === new Date().getFullYear();
+
+          const dayEvents = events.filter((event) => {
+            const d = new Date(event.start);
+            return (
+              d.getDate() === day.date.getDate() &&
+              d.getMonth() === day.date.getMonth() &&
+              d.getFullYear() === day.date.getFullYear()
+            );
+          });
+
+          return (
+            <div
+              key={i}
+              className={`min-h-[120px] border rounded-md p-1 transition-colors ${
+                day.isCurrentMonth 
+                  ? isToday 
+                    ? "bg-blue-50 ring-1 ring-primary" 
+                    : "bg-white hover:bg-gray-50"
+                  : "bg-gray-50 text-gray-400"
+              }`}
+            >
+              <div className={`text-right p-1 ${isToday ? "font-bold text-primary" : ""}`}>
+                {day.date.getDate()}
+              </div>
+              <div className="space-y-1">
+                {dayEvents.slice(0, 3).map((event) => (
+                  <div
+                    key={event.id}
+                    className={`text-xs p-1 rounded-md truncate border ${
+                      event.type === "meeting" 
+                        ? "bg-blue-50 border-blue-200 text-blue-800" 
+                        : "bg-amber-50 border-amber-200 text-amber-800"
+                    }`}
+                  >
+                    {format(new Date(event.start), "h:mm a")} - {event.title}
+                  </div>
+                ))}
+                {dayEvents.length > 3 && (
+                  <div className="text-xs text-center py-1 text-gray-500 font-medium">
+                    +{dayEvents.length - 3} more
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
-  )
+  );
 }
 
 function AddEventDialog({
@@ -511,75 +530,38 @@ function AddEventDialog({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Title
-            </Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="col-span-3"
-              required
-            />
+            <Label htmlFor="title" className="text-right">Title</Label>
+            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" required />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="col-span-3"
-            />
+            <Label htmlFor="description" className="text-right">Description</Label>
+            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="date" className="text-right">
-              Date
-            </Label>
+            <Label className="text-right">Date</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="col-span-3 justify-start text-left font-normal" id="date">
+                <Button variant="outline" className="col-span-3 justify-start text-left font-normal">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : "Select date"}
+                  {format(date, "PPP")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
+                <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
               </PopoverContent>
             </Popover>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="start-time" className="text-right">
-              Start Time
-            </Label>
-            <Input
-              id="start-time"
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="col-span-3"
-              required
-            />
+            <Label htmlFor="start-time" className="text-right">Start Time</Label>
+            <Input id="start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="col-span-3" required />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="end-time" className="text-right">
-              End Time
-            </Label>
-            <Input
-              id="end-time"
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="col-span-3"
-              required
-            />
+            <Label htmlFor="end-time" className="text-right">End Time</Label>
+            <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="col-span-3" required />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="type" className="text-right">
-              Type
-            </Label>
-            <Select value={type} onValueChange={(value) => setType(value as "meeting" | "request")}>
+            <Label htmlFor="type" className="text-right">Type</Label>
+            <Select value={type} onValueChange={(v) => setType(v as "meeting" | "request")}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -590,39 +572,31 @@ function AddEventDialog({
             </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="estimated-duration" className="text-right">
-              Est. Duration (min)
-            </Label>
-            <Input
-              id="estimated-duration"
-              type="number"
-              value={estimatedDuration}
-              onChange={(e) => setEstimatedDuration(e.target.value)}
-              className="col-span-3"
-              required
-              min="1"
-            />
+            <Label htmlFor="estimated-duration" className="text-right">Est. Duration</Label>
+            <Input id="estimated-duration" type="number" value={estimatedDuration} onChange={(e) => setEstimatedDuration(e.target.value)} className="col-span-3" required />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="attendees" className="text-right">
-              Attendees
-            </Label>
-            <Input
-              id="attendees"
-              value={attendees}
-              onChange={(e) => setAttendees(e.target.value)}
-              className="col-span-3"
-              placeholder="Comma separated names"
-            />
+            <Label htmlFor="attendees" className="text-right">Attendees</Label>
+            <Input id="attendees" value={attendees} onChange={(e) => setAttendees(e.target.value)} className="col-span-3" placeholder="Comma separated" />
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
           <Button type="submit">Add Event</Button>
         </DialogFooter>
       </form>
     </DialogContent>
   )
+}
+
+interface Event {
+  id: string;
+  title: string;
+  description?: string;
+  start: string;
+  end: string;
+  type: string;
+  estimatedDuration: number;
+  attendees?: string[];
+  notes?: string;
 }

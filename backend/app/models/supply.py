@@ -35,6 +35,7 @@ class SupplyUpdate(BaseModel):
     unit: Optional[str] = None
     purchase_url: Optional[str] = None
     purchase_price: Optional[float] = None
+    timestamp: Optional[datetime] = None
 
 # Get output
 class SupplyOut(SupplyBase):

@@ -132,7 +132,7 @@ export default function SupplySuggestions({ fullView = false }: SupplySuggestion
       <DashboardSidebar open={open} setOpen={setOpen} />
 
       <Card className="flex-1">
-        <CardHeader className="pb-3 border-b">
+        <CardHeader className="pb-3 border-b mb-5">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl font-bold">Supply Inventory</CardTitle>

@@ -34,13 +34,14 @@ export function Notifications() {
 
   const markAsRead = async (id: string) => {
     try {
+      console.log("Marking notification as read:", id)
       const response = await fetch(`http://localhost:8000/api/notifications/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ seen: true }),
+        }
       })
+
       if (response.ok) {
         setNotifications((prev) =>
           prev.map((notification) =>
@@ -78,7 +79,7 @@ const getTypeStyles = (type: string) => {
         </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[200px] pr-4">
+        <ScrollArea className="h-[285px] pr-4">
           <div className="space-y-4">
             {notifications.map((notification) => (
               <div
