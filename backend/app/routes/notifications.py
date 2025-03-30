@@ -32,8 +32,8 @@ def read_notification(notification_id: UUID):
     return {"error": result["error"]}
 
 @router.put("/{notification_id}")
-def update_notification(notification: NotificationUpdate):
-    result = update_notification_record(notification.id)
+def update_notification(notification_id: UUID):
+    result = update_notification_record(notification_id)
     if result["success"]:
         return {"message": result["message"]}
     return {"error": result["error"]}
