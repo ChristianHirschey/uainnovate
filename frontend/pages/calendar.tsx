@@ -117,23 +117,15 @@ export default function CalendarPage() {
 
   const addEvent = async (event: Event) => {
     try {
-      const response = await fetch("/api/events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(event),
-      });
-      if (!response.ok) throw new Error("Failed to add event");
-      fetchEvents();
+      setEvents((prev) => [...prev, { ...event, id: String(Date.now()) }]);
       setIsAddEventOpen(false);
-      toast({ title: "Success", description: "Event added!" });
+      toast({ title: "Success", description: "Event added to your calendar!" });
     } catch (error) {
       console.error("Add event error:", error);
       toast({ title: "Error", description: "Could not add event", variant: "destructive" });
-      setEvents([...events, { ...event, id: String(Date.now()) }]);
-      setIsAddEventOpen(false);
     }
   };
-
+  
   return (
     <div className="flex h-screen w-full bg-gray-50">
       <DashboardSidebar open={sidebarOpen} setOpen={setSidebarOpen} />
@@ -266,8 +258,8 @@ function DayView({ date, events }: { date: Date; events: Event[] }) {
             className="absolute left-0 w-full border-t text-xs text-muted-foreground"
             style={{ top: `${(hour - startHour) * 60}px` }}
           >
-            <div className="pl-2">{hour}:00</div>
-          </div>
+            <div className="pl-2">{format(new Date().setHours(hour, 0, 0, 0), "h a")}</div>          
+        </div>
         );
       })}
 
@@ -366,7 +358,7 @@ function WeekView({ date, events }: { date: Date; events: Event[] }) {
         <div className="col-span-1 border-r">
           {hours.map((hour) => (
             <div key={hour} className="h-[60px] text-xs text-right pr-2 pt-2 text-gray-500 border-b">
-              {hour}:00
+            {format(new Date().setHours(hour, 0, 0, 0), "h a")}
             </div>
           ))}
         </div>
@@ -621,6 +613,15 @@ function AddEventDialog({
       </form>
     </DialogContent>
   )
+}
+
+interface LogEntry {
+  message: string;
+  supply_id: string;
+  user_id: string | null;
+  change: number;
+  reason: string;
+  timestamp: string;
 }
 
 interface Event {
