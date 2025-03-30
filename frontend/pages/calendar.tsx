@@ -83,11 +83,16 @@ export default function CalendarPage() {
 
   const addEvent = async (event: Event) => {
     try {
-      const response = await fetch("/api/events", {
+      for (const key in event) {
+        const typedKey = key as keyof Event;
+        console.log(`${key}: ${typeof event[typedKey]}`);
+      }
+      const response = await fetch("http://localhost:8000/api/calendar/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(event),
       });
+      console.log(response)
       if (!response.ok) throw new Error("Failed to add event");
       fetchEvents();
       setIsAddEventOpen(false);
