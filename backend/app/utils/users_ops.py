@@ -5,7 +5,7 @@ import base64
 import json
 from google import genai
 from google.genai import types
-from app.models.user import PromptCreate
+from app.models.user import PromptCreate, QRRequestCreate
 import httpx
 from app.supabase.supabaseClient import supabase
 
@@ -87,6 +87,42 @@ async def create_prompt(prompt: PromptCreate) -> dict:
                         "description": prompt.message,
                         "priority": priority_level,
                         "user_id": str(prompt.user_id),
+                        "supply_id": item_id.data[0].get("id") if item_id.data else None,
+                    }
+                )
+
+            return {"success": True, "message": "Prompt added"}
+
+        return {
+            "success": False,
+            "error": "Insert failed. No data returned.",
+            "raw_output": generated,
+        }
+
+    except Exception as e:
+        print("Exception:", e)
+        return {"success": False, "error": str(e)}
+    
+async def create_qr_request(prompt: QRRequestCreate) -> dict:
+    try:
+        generated = generate(prompt.message)
+        data = generated.get("data", {})
+        category = data.get("category")
+        priority_level = data.get("priority_level")
+        item_type = data.get("item_type")
+        item_id = supabase.from_("supplies").select("id").ilike("name", item_type).execute()
+
+        print("Item ID:", item_id)
+        print("Item type:", item_type)
+
+        if category and priority_level:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "http://localhost:8000/api/requests/",
+                    json={
+                        "type": category,
+                        "description": prompt.message,
+                        "priority": priority_level,
                         "supply_id": item_id.data[0].get("id") if item_id.data else None,
                     }
                 )
