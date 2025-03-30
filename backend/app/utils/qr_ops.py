@@ -1,3 +1,5 @@
+import difflib
+from typing import Any, Dict
 from google import genai
 from google.genai import types
 import base64
@@ -6,6 +8,9 @@ import asyncio
 import os
 from fastapi import UploadFile, File, HTTPException
 import uuid
+from app.utils.supply_ops import get_all_supplies, consume_supply
+
+
 
 async def process_image(file: UploadFile = File(...)):
     """
@@ -162,3 +167,69 @@ async def process_image(file: UploadFile = File(...)):
         import traceback
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+    
+def handle_parsed_data(parsed_data: Dict[str, Any]):
+    """
+    Handle the parsed data from image processing
+    """
+    # Get all existing supplies from the database
+    all_supplies = get_all_supplies()
+    
+    # Map supplies by name for easier lookup
+    supply_map = {supply["name"].lower(): supply for supply in all_supplies}
+    
+    results = []
+    
+    # Process each detected item
+    for item in parsed_data.get("items", []):
+        item_name = item.get("name", "").lower()
+        
+        # Try to find a matching supply
+        matched_supply = None
+        for supply_name, supply in supply_map.items():
+            # Simple contains check
+            if item_name in supply_name or supply_name in item_name:
+                matched_supply = supply
+                break
+                
+        # If no direct match, try fuzzy matching
+        if not matched_supply:
+            matches = difflib.get_close_matches(
+                item_name,
+                supply_map.keys(),
+                n=1,
+                cutoff=0.6
+            )
+            
+            if matches:
+                matched_supply = supply_map[matches[0]]
+        
+        # If we found a match, consume one unit
+        if matched_supply:
+            # Create a supply action
+            quantity = 1  # Default to consuming 1 unit
+            
+            # Consume the supply
+            result = consume_supply(
+                supply_id=matched_supply["id"],
+                quantity=quantity,
+                user_id=None  # You might want to pass a user ID here
+            )
+            
+            results.append({
+                "item": item.get("name"),
+                "matched_supply": matched_supply["name"],
+                "supply_id": matched_supply["id"],
+                "consumed": result.get("success", False),
+                "new_stock": result.get("new_stock"),
+                "error": result.get("error")
+            })
+        else:
+            # No match found
+            results.append({
+                "item": item.get("name"),
+                "matched": False,
+                "error": "No matching supply found"
+            })
+    
+    return results
