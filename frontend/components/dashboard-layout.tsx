@@ -10,9 +10,48 @@ import { Calendar } from "@/components/calendar"
 import { Notifications } from "@/components/notifications"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
+import { createClient } from "@/lib/supabase/client"
+import { useEffect } from "react"
 
 export function DashboardLayout() {
+  const supabase = createClient();
+  
+  // Auth-related state
+  const [user, setUser] = useState<any>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  
+  useEffect(() => {
+    async function fetchUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+      }
+      setLoadingUser(false);
+    }
+    fetchUser();
+  }, [supabase]);
+  
+  // Render a loading indicator while user data is loading.
+  if (loadingUser) {
+    return <div>Loading user data...</div>;
+  }
+  
+  // If no user is found, prompt sign in.
+  if (!user) {
+    return <div>No user found. Please sign in.</div>;
+  }
+  
+  // Check admin rights. Adjust this check if you store admin info differently.
+  const userRole = user!.role?.toString().trim().toLowerCase() || "";
+  if (userRole !== "admin") {
+    return (
+      <div className="unauthorized">
+        <p>You are not authorized to view this page.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
