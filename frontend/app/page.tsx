@@ -1,6 +1,6 @@
-import SignupLogin from "@/pages/signup_login"
+import { DashboardLayout } from "@/components/dashboard-layout"
 
 export default function Home() {
-  return <SignupLogin />
+  return <DashboardLayout />
 }
 

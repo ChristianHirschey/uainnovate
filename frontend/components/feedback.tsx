@@ -226,13 +226,13 @@ export function Feedback() {
         ) : (
           <ScrollArea className="h-[400px] rounded-lg border bg-white">
             <div className="space-y-2 p-1">
-              {filteredRequests.map((item) => {
+              {Array.isArray(filteredRequests) && filteredRequests.map((item, index) => {
                 const typeInfo = getTypeInfo(item.type)
                 const priorityColor = getPriorityInfo(item.priority)
                 const statusInfo = getStatusInfo(item.status)
                 
                 return (
-                  <div key={item.id} className="flex gap-4 rounded-lg border border-slate-200 p-4 hover:bg-slate-50/50 transition-colors shadow-sm">
+                  <div key={index} className="flex gap-4 rounded-lg border border-slate-200 p-4 hover:bg-slate-50/50 transition-colors shadow-sm">
                     <Avatar className={`${typeInfo.avatarColor} text-lg shadow-sm`}>
                       <AvatarFallback>{typeInfo.icon}</AvatarFallback>
                     </Avatar>
@@ -278,13 +278,13 @@ export function Feedback() {
           </div>
           <div className="flex gap-2">
             <Badge variant="outline" className="bg-blue-100 text-blue-600 border-0">
-              Supply: {requests.filter(r => r.type === 'supply').length}
+              Supply: {Array.isArray(requests) ? requests.filter(r => r.type === 'supply').length : 0}
             </Badge>
             <Badge variant="outline" className="bg-orange-100 text-orange-600 border-0">
-              Maintenance: {requests.filter(r => r.type === 'maintenance').length}
+              Maintenance: {Array.isArray(requests) ? requests.filter(r => r.type === 'maintenance').length : 0}
             </Badge>
             <Badge variant="outline" className="bg-purple-100 text-purple-600 border-0">
-              Suggestions: {requests.filter(r => r.type === 'suggestion').length}
+              Suggestions: {Array.isArray(requests) ? requests.filter(r => r.type === 'suggestion').length : 0}
             </Badge>
           </div>
         </div>
