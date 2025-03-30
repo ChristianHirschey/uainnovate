@@ -63,7 +63,6 @@ def delete_supply(supply_id: str):
 def restock_supply(supply_id: str, action: SupplyAction):
     return supply_ops.restock_supply(
         supply_id=supply_id,
-        quantity=action.quantity,
         user_id=action.user_id
 )
 
